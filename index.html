@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aslam — Life Goal Map</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #050a0e;
+    --grid: #0a1a24;
+    --accent: #00ffe0;
+    --accent2: #ff6b00;
+    --accent3: #7b2fff;
+    --text: #c8d8e0;
+    --dim: #3a5060;
+    --done: #00ffe0;
+    --active: #ff6b00;
+    --future: #3a5060;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,224,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,224,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .header .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #fff;
+    line-height: 1.1;
+  }
+
+  .header h1 span {
+    color: var(--accent);
+  }
+
+  .header .sub {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
+  }
+
+  /* SCAN LINE EFFECT */
+  .header::after {
+    content: '';
+    display: block;
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 20px auto 0;
+    animation: scan 3s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0%, 100% { opacity: 0.3; width: 60px; }
+    50% { opacity: 1; width: 200px; }
+  }
+
+  /* PHASE TRACK */
+  .track {
+    position: relative;
+    padding-left: 40px;
+  }
+
+  /* Vertical spine */
+  .track::before {
+    content: '';
+    position: absolute;
+    left: 12px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent3), var(--dim));
+  }
+
+  /* PHASE */
+  .phase {
+    position: relative;
+    margin-bottom: 48px;
+    transition: transform 0.2s ease;
+  }
+
+  .phase:hover {
+    transform: translateX(4px);
+  }
+
+  /* Node dot */
+  .phase::before {
+    content: '';
+    position: absolute;
+    left: -34px;
+    top: 14px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    background: var(--bg);
+    z-index: 2;
+  }
+
+  .phase.done::before { color: var(--done); box-shadow: 0 0 8px var(--done); background: var(--done); }
+  .phase.active::before { color: var(--active); box-shadow: 0 0 12px var(--active); animation: pulse 1.5s ease-in-out infinite; }
+  .phase.future::before { color: var(--future); }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 8px var(--active); }
+    50% { box-shadow: 0 0 20px var(--active), 0 0 40px var(--active); }
+  }
+
+  /* Card */
+  .phase-card {
+    background: rgba(10, 26, 36, 0.8);
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .phase.done .phase-card { border-color: rgba(0,255,224,0.25); }
+  .phase.active .phase-card { border-color: rgba(255,107,0,0.5); box-shadow: 0 0 20px rgba(255,107,0,0.1); }
+  .phase.future .phase-card { border-color: rgba(58,80,96,0.5); }
+
+  /* Corner accent */
+  .phase-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, transparent 60%, currentColor 60%);
+    opacity: 0.15;
+  }
+
+  .phase-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .phase-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    opacity: 0.5;
+  }
+
+  .phase-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    flex: 1;
+  }
+
+  .phase.done .phase-title { color: var(--done); }
+  .phase.active .phase-title { color: var(--active); }
+  .phase.future .phase-title { color: var(--text); }
+
+  .badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .badge.done { background: rgba(0,255,224,0.1); color: var(--done); border: 1px solid rgba(0,255,224,0.3); }
+  .badge.active { background: rgba(255,107,0,0.1); color: var(--active); border: 1px solid rgba(255,107,0,0.4); }
+  .badge.future { background: rgba(58,80,96,0.2); color: var(--dim); border: 1px solid rgba(58,80,96,0.4); }
+
+  /* Skills grid */
+  .skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .skill-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  .phase.done .skill-tag { background: rgba(0,255,224,0.08); color: rgba(0,255,224,0.7); border: 1px solid rgba(0,255,224,0.15); }
+  .phase.active .skill-tag { background: rgba(255,107,0,0.08); color: rgba(255,107,0,0.8); border: 1px solid rgba(255,107,0,0.2); }
+  .phase.future .skill-tag { background: rgba(58,80,96,0.15); color: var(--dim); border: 1px solid rgba(58,80,96,0.3); }
+
+  .phase-desc {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--dim);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 12px;
+    margin-top: 4px;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 2px;
+    background: rgba(58,80,96,0.3);
+    border-radius: 1px;
+    margin-top: 14px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 1px;
+    transition: width 1s ease;
+  }
+
+  .phase.done .progress-fill { background: var(--done); width: 100%; }
+  .phase.active .progress-fill { background: var(--active); animation: grow 2s ease forwards; }
+  .phase.future .progress-fill { width: 0%; }
+
+  @keyframes grow {
+    from { width: 0%; }
+    to { width: var(--prog); }
+  }
+
+  /* FINAL TARGET */
+  .target {
+    text-align: center;
+    margin-top: 20px;
+    padding: 40px 20px;
+    border: 1px solid rgba(123,47,255,0.4);
+    border-radius: 4px;
+    background: rgba(123,47,255,0.05);
+    box-shadow: 0 0 40px rgba(123,47,255,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .target::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(123,47,255,0.1) 0%, transparent 70%);
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .target-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 5px;
+    color: var(--accent3);
+    margin-bottom: 12px;
+  }
+
+  .target-title {
+    font-size: clamp(22px, 4vw, 38px);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #fff;
+    position: relative;
+  }
+
+  .target-title span { color: var(--accent3); }
+
+  .target-sub {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* STATS ROW */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 60px;
+  }
+
+  .stat {
+    background: rgba(10,26,36,0.6);
+    border: 1px solid rgba(0,255,224,0.1);
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 22px;
+    color: var(--accent);
+    font-weight: bold;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* Glitch on hover for header */
+  .header h1:hover {
+    animation: glitch 0.3s ease;
+  }
+
+  @keyframes glitch {
+    0% { text-shadow: none; }
+    20% { text-shadow: -2px 0 var(--accent2), 2px 0 var(--accent); }
+    40% { text-shadow: 2px 0 var(--accent2), -2px 0 var(--accent); }
+    60% { text-shadow: none; }
+    80% { text-shadow: -1px 0 var(--accent3); }
+    100% { text-shadow: none; }
+  }
+
+  /* Scroll reveal */
+  .phase { opacity: 0; transform: translateX(-10px); animation: reveal 0.5s ease forwards; }
+  .phase:nth-child(1) { animation-delay: 0.1s; }
+  .phase:nth-child(2) { animation-delay: 0.2s; }
+  .phase:nth-child(3) { animation-delay: 0.3s; }
+  .phase:nth-child(4) { animation-delay: 0.4s; }
+  .phase:nth-child(5) { animation-delay: 0.5s; }
+  .phase:nth-child(6) { animation-delay: 0.6s; }
+  .phase:nth-child(7) { animation-delay: 0.7s; }
+
+  @keyframes reveal {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .target { opacity: 0; animation: fadeup 0.8s 0.8s ease forwards; }
+  @keyframes fadeup {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    .track { padding-left: 28px; }
+    .phase::before { left: -22px; }
+    .track::before { left: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="tag">// SK ASLAM ALI — NAIHATI, WEST BENGAL</div>
+    <h1>MISSION: <span>CORE EMBEDDED</span><br>+ AIoT / EDGE AI</h1>
+    <div class="sub">firmware_dev@NGB → embedded_engineer → edge_ai_specialist</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val">ITI</div>
+      <div class="stat-label">Electronics Mechanic</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">2nd yr</div>
+      <div class="stat-label">Diploma ETCE</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">NGB</div>
+      <div class="stat-label">Firmware Dev (Active)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">7+</div>
+      <div class="stat-label">MCUs Owned</div>
+    </div>
+  </div>
+
+  <!-- TRACK -->
+  <div class="track">
+
+    <!-- PHASE 1 -->
+    <div class="phase done">
+      <div class="phase-card">
+        <div class="phase-head">
+          <span class="phase-num">PHASE 01</span>
+          <span class="phase-title">Foundation</span>
+          <span class="badge done">COMPLETE</span>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">ITI Electronics</span>
+          <span class="skill-tag">Basic C</span>
+          <span class="skill-tag">Arduino IDE</span>
+          <span class="skill-tag">ESP32 Basics</span>
+          <span class="skill-tag">MSP430 Bare-Metal</span>
+        </div>
+        <div class="phase-desc">
+          ITI Electronics Mechanic (2022–24). First real hardware. GPIO, UART, I2C from scratch. Built real products at NGB using ESP32 + P10 displays.
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div class="phase active">
+      <div class="phase-card">
+        <div class="phase-head">
+          <span class="phase-num">PHASE 02</span>
+          <span class="phase-title">C Mastery + Diploma</span>
+          <span class="badge active">IN PROGRESS</span>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">C — Pointers</span>
+          <span class="skill-tag">Structs</span>
+          <span class="skill-tag">Dynamic Memory</span>
+          <span class="skill-tag">Bitwise Ops</span>
+          <span class="skill-tag">ETCE 4th Sem</span>
+          <span class="skill-tag">PlatformIO</span>
+        </div>
+        <div class="phase-desc">
+          Deep C curriculum. Problem-solving patterns. Diploma finishing. NGB production firmware running in real fuel stations. CLI device manager project target.
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="--prog: 55%;"></div></div>
+      </div>
+    </div>
+
+    <!-- PHASE 3 -->
+    <div class="phase future">
+      <div class="phase-card">
+        <div class="phase-head">
+          <span class="phase-num">PHASE 03</span>
+          <span class="phase-title">ESP-IDF Mastery</span>
+          <span class="badge future">NEXT</span>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">ESP-IDF</span>
+          <span class="skill-tag">FreeRTOS</span>
+          <span class="skill-tag">SPI/I2C/UART native</span>
+          <span class="skill-tag">WiFi Stack</span>
+          <span class="skill-tag">OTA</span>
+          <span class="skill-tag">NVS / Flash</span>
+        </div>
+        <div class="phase-desc">
+          Drop Arduino HAL. Write production firmware in pure ESP-IDF. FreeRTOS tasks, queues, semaphores. This is industry-level embedded on ESP32.
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- PHASE 4 -->
+    <div class="phase future">
+      <div class="phase-card">
+        <div class="phase-head">
+          <span class="phase-num">PHASE 04</span>
+          <span class="phase-title">STM32 — Real Embedded</span>
+          <span class="badge future">UPCOMING</span>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">STM32 HAL / LL</span>
+          <span class="skill-tag">CubeMX</span>
+          <span class="skill-tag">CMSIS</span>
+          <span class="skill-tag">DMA</span>
+          <span class="skill-tag">Timers / PWM</span>
+          <span class="skill-tag">CAN / RS485</span>
+        </div>
+        <div class="phase-desc">
+          Nucleo-F446RE already in your hands. STM32 = industry standard. HAL first → LL registers later. DMA-based peripherals. This unlocks core embedded jobs.
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- PHASE 5 -->
+    <div class="phase future">
+      <div class="phase-card">
+        <div class="phase-head">
+          <span class="phase-num">PHASE 05</span>
+          <span class="phase-title">RTOS + System Design</span>
+          <span class="badge future">UPCOMING</span>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">FreeRTOS Deep</span>
+          <span class="skill-tag">Bootloaders</span>
+          <span class="skill-tag">Memory Maps</span>
+          <span class="skill-tag">Watchdog</span>
+          <span class="skill-tag">Power Mgmt</span>
+          <span class="skill-tag">Fault Handling</span>
+        </div>
+        <div class="phase-desc">
+          Build real-time systems. Understand stack/heap on bare metal. Write your own bootloader. Power-efficient design. This is senior embedded territory.
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- PHASE 6 -->
+    <div class="phase future">
+      <div class="phase-card">
+        <div class="phase-head">
+          <span class="phase-num">PHASE 06</span>
+          <span class="phase-title">Edge AI / TFLite Micro</span>
+          <span class="badge future">TARGET</span>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">TensorFlow Lite Micro</span>
+          <span class="skill-tag">Edge Impulse</span>
+          <span class="skill-tag">ESP32-S3</span>
+          <span class="skill-tag">Quantization</span>
+          <span class="skill-tag">Model Deployment</span>
+          <span class="skill-tag">Sensor Fusion</span>
+        </div>
+        <div class="phase-desc">
+          Run ML models on microcontrollers. Keyword detection, anomaly detection, image classification — on ESP32-S3 or STM32. This is AIoT. This is the future.
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- PHASE 7 -->
+    <div class="phase future">
+      <div class="phase-card">
+        <div class="phase-head">
+          <span class="phase-num">PHASE 07</span>
+          <span class="phase-title">Portfolio + Job</span>
+          <span class="badge future">DESTINATION</span>
+        </div>
+        <div class="skills">
+          <span class="skill-tag">GitHub Portfolio</span>
+          <span class="skill-tag">PCB Design</span>
+          <span class="skill-tag">Product Firmware</span>
+          <span class="skill-tag">Bangalore / Remote</span>
+          <span class="skill-tag">Core Embedded Role</span>
+        </div>
+        <div class="phase-desc">
+          3–5 strong embedded projects on GitHub. Real PCBs designed. Production firmware deployed. Apply to core embedded roles in Bangalore/Hyderabad or remote. Target: ₹6–12L fresher CTC → ₹15–25L in 3 years.
+        </div>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+
+  </div><!-- end track -->
+
+  <!-- FINAL TARGET -->
+  <div class="target">
+    <div class="target-label">// FINAL DESTINATION</div>
+    <div class="target-title">CORE EMBEDDED <span>ENGINEER</span><br>+ AIoT / EDGE AI SPECIALIST</div>
+    <div class="target-sub">naihati → production firmware → bangalore → embedded + ai → impact</div>
+  </div>
+
+</div>
+</body>
+</html>
