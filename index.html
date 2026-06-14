@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aslam — Mission Map</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+:root {
+  --bg: #050a0e;
+  --accent: #00ffe0;
+  --accent2: #ff6b00;
+  --accent3: #7b2fff;
+  --text: #c8d8e0;
+  --dim: #3a5060;
+  --done: #00ffe0;
+  --active: #ff6b00;
+  --card-bg: rgba(10,26,36,0.85);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,224,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,224,0.025) 1px, transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+  z-index:0;
+}
+
+.container {
+  position:relative;
+  z-index:1;
+  max-width:980px;
+  margin:0 auto;
+  padding:40px 20px 80px;
+}
+
+/* ── HEADER ── */
+.header { text-align:center; margin-bottom:50px; }
+.header .tag {
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px;
+  color:var(--accent);
+  letter-spacing:4px;
+  margin-bottom:10px;
+}
+.header h1 {
+  font-size:clamp(26px,5vw,50px);
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:#fff;
+  line-height:1.1;
+  cursor:default;
+}
+.header h1:hover { animation:glitch 0.3s ease; }
+.header h1 span { color:var(--accent); }
+.header .sub {
+  margin-top:10px;
+  font-size:13px;
+  color:var(--dim);
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:2px;
+}
+.header::after {
+  content:'';
+  display:block;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  margin:20px auto 0;
+  animation:scan 3s ease-in-out infinite;
+  width:120px;
+}
+
+/* AYAH BANNER */
+.ayah {
+  background: rgba(123,47,255,0.07);
+  border: 1px solid rgba(123,47,255,0.3);
+  border-radius:4px;
+  padding:18px 24px;
+  text-align:center;
+  margin-bottom:44px;
+}
+.ayah-arabic {
+  font-size:20px;
+  color:rgba(123,47,255,0.9);
+  letter-spacing:2px;
+  margin-bottom:6px;
+  direction:rtl;
+}
+.ayah-trans {
+  font-size:12px;
+  color:var(--dim);
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:1px;
+}
+.ayah-ref {
+  font-size:10px;
+  color:rgba(123,47,255,0.5);
+  margin-top:4px;
+  font-family:'Share Tech Mono',monospace;
+}
+
+/* ── STATS ── */
+.stats {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:10px;
+  margin-bottom:50px;
+}
+.stat {
+  background:var(--card-bg);
+  border:1px solid rgba(0,255,224,0.1);
+  border-radius:4px;
+  padding:14px;
+  text-align:center;
+}
+.stat-val {
+  font-family:'Share Tech Mono',monospace;
+  font-size:20px;
+  color:var(--accent);
+  font-weight:bold;
+}
+.stat-label { font-size:10px; color:var(--dim); margin-top:3px; letter-spacing:1px; text-transform:uppercase; }
+
+/* ── TRACK ── */
+.track { position:relative; padding-left:42px; }
+.track::before {
+  content:'';
+  position:absolute;
+  left:13px; top:0; bottom:0;
+  width:2px;
+  background:linear-gradient(to bottom, var(--accent), var(--accent3), var(--dim));
+}
+
+/* ── PHASE ── */
+.phase {
+  position:relative;
+  margin-bottom:44px;
+  opacity:0;
+  transform:translateX(-12px);
+  animation:reveal 0.5s ease forwards;
+}
+.phase:nth-child(1){animation-delay:0.05s}
+.phase:nth-child(2){animation-delay:0.15s}
+.phase:nth-child(3){animation-delay:0.25s}
+.phase:nth-child(4){animation-delay:0.35s}
+.phase:nth-child(5){animation-delay:0.45s}
+.phase:nth-child(6){animation-delay:0.55s}
+.phase:nth-child(7){animation-delay:0.65s}
+
+/* Node dot */
+.phase::before {
+  content:'';
+  position:absolute;
+  left:-35px; top:16px;
+  width:12px; height:12px;
+  border-radius:50%;
+  border:2px solid;
+  background:var(--bg);
+  z-index:2;
+}
+.phase.done::before  { border-color:var(--done); box-shadow:0 0 8px var(--done); background:var(--done); }
+.phase.active::before{ border-color:var(--active); animation:pulse 1.5s ease-in-out infinite; }
+.phase.future::before{ border-color:var(--dim); }
+
+/* ── CARD ── */
+.phase-card {
+  background:var(--card-bg);
+  border:1px solid;
+  border-radius:4px;
+  overflow:hidden;
+  transition:transform 0.2s ease;
+}
+.phase-card:hover { transform:translateX(3px); }
+.phase.done   .phase-card { border-color:rgba(0,255,224,0.22); }
+.phase.active .phase-card { border-color:rgba(255,107,0,0.5); box-shadow:0 0 22px rgba(255,107,0,0.08); }
+.phase.future .phase-card { border-color:rgba(58,80,96,0.45); }
+
+/* Card header (clickable) */
+.phase-header {
+  padding:18px 22px 14px;
+  cursor:pointer;
+  user-select:none;
+}
+.phase-head {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.phase-num {
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;
+  letter-spacing:3px;
+  opacity:0.45;
+}
+.phase-title {
+  font-size:17px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  flex:1;
+}
+.phase.done   .phase-title { color:var(--done); }
+.phase.active .phase-title { color:var(--active); }
+.phase.future .phase-title { color:var(--text); }
+
+.badge {
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;
+  padding:3px 8px;
+  border-radius:2px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+}
+.badge.done   { background:rgba(0,255,224,0.1); color:var(--done); border:1px solid rgba(0,255,224,0.3); }
+.badge.active { background:rgba(255,107,0,0.1); color:var(--active); border:1px solid rgba(255,107,0,0.4); }
+.badge.future { background:rgba(58,80,96,0.2); color:var(--dim); border:1px solid rgba(58,80,96,0.35); }
+
+.expand-hint {
+  font-family:'Share Tech Mono',monospace;
+  font-size:9px;
+  color:var(--dim);
+  letter-spacing:2px;
+  float:right;
+  margin-top:2px;
+  transition:color 0.2s;
+}
+.phase-card:hover .expand-hint { color:var(--accent); }
+
+/* Skills tags */
+.skills { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+.skill-tag {
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;
+  padding:3px 9px;
+  border-radius:2px;
+  letter-spacing:1px;
+}
+.phase.done   .skill-tag { background:rgba(0,255,224,0.07); color:rgba(0,255,224,0.7); border:1px solid rgba(0,255,224,0.14); }
+.phase.active .skill-tag { background:rgba(255,107,0,0.07); color:rgba(255,107,0,0.8); border:1px solid rgba(255,107,0,0.18); }
+.phase.future .skill-tag { background:rgba(58,80,96,0.15); color:var(--dim); border:1px solid rgba(58,80,96,0.28); }
+
+.phase-desc { font-size:13px; line-height:1.65; color:var(--dim); }
+
+/* Progress bar */
+.progress-bar { height:2px; background:rgba(58,80,96,0.3); margin-top:14px; overflow:hidden; }
+.progress-fill { height:100%; }
+.phase.done   .progress-fill { background:var(--done); width:100%; }
+.phase.active .progress-fill { background:var(--active); animation:grow 1.5s ease forwards; }
+.phase.future .progress-fill { width:0%; }
+
+/* ── EXPANDABLE BODY ── */
+.phase-body {
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.45s ease;
+  border-top:0px solid;
+}
+.phase-body.open {
+  max-height:1400px;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+
+.phase-inner { padding:20px 22px 22px; display:grid; gap:18px; }
+
+/* 3-col grid on wide */
+@media(min-width:640px){
+  .phase-inner { grid-template-columns:1fr 1fr; }
+  .phase-inner .full-col { grid-column:1/-1; }
+}
+
+.section-block { }
+.section-title {
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  padding-bottom:5px;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.phase.done   .section-title { color:rgba(0,255,224,0.5); }
+.phase.active .section-title { color:rgba(255,107,0,0.6); }
+.phase.future .section-title { color:rgba(58,80,96,0.8); }
+
+/* Topic checklist */
+.topic-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+.topic-list li {
+  font-size:12px;
+  color:var(--text);
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+  line-height:1.5;
+}
+.topic-list li::before {
+  content:'▸';
+  font-size:10px;
+  flex-shrink:0;
+  margin-top:2px;
+}
+.phase.done   .topic-list li::before { color:var(--done); }
+.phase.active .topic-list li::before { color:var(--active); }
+.phase.future .topic-list li::before { color:var(--dim); }
+
+.topic-list li span { color:var(--dim); font-size:11px; display:block; }
+
+/* Project cards */
+.project-list { display:flex; flex-direction:column; gap:8px; }
+.project-item {
+  background:rgba(0,0,0,0.25);
+  border-radius:3px;
+  padding:8px 12px;
+  border-left:2px solid;
+}
+.phase.done   .project-item { border-color:rgba(0,255,224,0.3); }
+.phase.active .project-item { border-color:rgba(255,107,0,0.4); }
+.phase.future .project-item { border-color:rgba(58,80,96,0.4); }
+.project-name { font-size:12px; font-weight:600; color:var(--text); }
+.project-desc { font-size:11px; color:var(--dim); margin-top:2px; line-height:1.4; }
+
+/* Resource links */
+.resource-list { display:flex; flex-direction:column; gap:6px; }
+.resource-item { font-size:11px; color:var(--dim); display:flex; gap:8px; align-items:baseline; }
+.resource-item::before { content:'→'; color:var(--accent3); flex-shrink:0; }
+.resource-item a { color:rgba(123,47,255,0.8); text-decoration:none; }
+.resource-item a:hover { color:var(--accent3); }
+
+/* Warning / tip block */
+.tip-block {
+  background:rgba(255,107,0,0.05);
+  border:1px solid rgba(255,107,0,0.2);
+  border-radius:3px;
+  padding:10px 14px;
+  font-size:12px;
+  color:rgba(255,107,0,0.8);
+  line-height:1.55;
+}
+.tip-block.info {
+  background:rgba(0,255,224,0.04);
+  border-color:rgba(0,255,224,0.15);
+  color:rgba(0,255,224,0.7);
+}
+
+/* ── SALARY CHART ── */
+.salary-section {
+  margin: 50px 0 44px;
+  background:var(--card-bg);
+  border:1px solid rgba(0,255,224,0.12);
+  border-radius:4px;
+  padding:24px 22px;
+  opacity:0;
+  animation:fadeup 0.6s 0.7s ease forwards;
+}
+.salary-title {
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;
+  letter-spacing:3px;
+  color:var(--accent);
+  margin-bottom:20px;
+}
+.salary-chart { display:flex; flex-direction:column; gap:10px; }
+.salary-row { display:flex; align-items:center; gap:12px; }
+.salary-label { font-size:11px; color:var(--dim); font-family:'Share Tech Mono',monospace; width:100px; flex-shrink:0; }
+.salary-bar-wrap { flex:1; background:rgba(58,80,96,0.2); height:20px; border-radius:2px; overflow:hidden; position:relative; }
+.salary-bar {
+  height:100%;
+  border-radius:2px;
+  display:flex;
+  align-items:center;
+  padding-left:8px;
+  font-size:10px;
+  font-family:'Share Tech Mono',monospace;
+  white-space:nowrap;
+  animation:barGrow 1.2s ease forwards;
+  width:0%;
+}
+.salary-val { font-size:11px; color:var(--text); font-family:'Share Tech Mono',monospace; width:70px; flex-shrink:0; text-align:right; }
+
+/* ── FINAL TARGET ── */
+.target {
+  text-align:center;
+  padding:44px 20px;
+  border:1px solid rgba(123,47,255,0.4);
+  border-radius:4px;
+  background:rgba(123,47,255,0.04);
+  box-shadow:0 0 50px rgba(123,47,255,0.08);
+  position:relative;
+  overflow:hidden;
+  opacity:0;
+  animation:fadeup 0.8s 0.9s ease forwards;
+}
+.target::before {
+  content:'';
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse at center, rgba(123,47,255,0.08) 0%, transparent 70%);
+  animation:breathe 4s ease-in-out infinite;
+}
+.target-label {
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;
+  letter-spacing:5px;
+  color:var(--accent3);
+  margin-bottom:12px;
+  position:relative;
+}
+.target-title {
+  font-size:clamp(20px,4vw,36px);
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:3px;
+  color:#fff;
+  position:relative;
+  line-height:1.2;
+}
+.target-title span { color:var(--accent3); }
+.target-sub {
+  margin-top:10px;
+  font-size:12px;
+  color:var(--dim);
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:1px;
+  position:relative;
+}
+.target-quote {
+  margin-top:16px;
+  font-size:13px;
+  color:rgba(123,47,255,0.6);
+  font-style:italic;
+  position:relative;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes reveal  { to { opacity:1; transform:translateX(0); } }
+@keyframes fadeup  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes scan    { 0%,100%{opacity:0.3;width:60px;} 50%{opacity:1;width:200px;} }
+@keyframes pulse   { 0%,100%{box-shadow:0 0 8px var(--active);} 50%{box-shadow:0 0 20px var(--active),0 0 40px var(--active);} }
+@keyframes grow    { from{width:0%} to{width:var(--prog)} }
+@keyframes barGrow { from{width:0%} to{width:var(--bw)} }
+@keyframes breathe { 0%,100%{opacity:0.5} 50%{opacity:1} }
+@keyframes glitch  { 0%{text-shadow:none} 20%{text-shadow:-2px 0 var(--accent2),2px 0 var(--accent)} 40%{text-shadow:2px 0 var(--accent2),-2px 0 var(--accent)} 60%{text-shadow:none} 80%{text-shadow:-1px 0 var(--accent3)} 100%{text-shadow:none} }
+
+@media(max-width:480px){
+  .track{padding-left:28px;}
+  .phase::before{left:-22px;}
+  .track::before{left:6px;}
+  .salary-label{width:70px;font-size:10px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="tag">// SK ASLAM ALI — NAIHATI, WEST BENGAL — FIRMWARE DEV @ NGB</div>
+  <h1>MISSION: <span>CORE EMBEDDED</span><br>+ AIoT / EDGE AI</h1>
+  <div class="sub">ITI → Diploma → ESP-IDF → STM32 → TFLite → Job</div>
+</div>
+
+<!-- AYAH -->
+<div class="ayah">
+  <div class="ayah-arabic">وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ</div>
+  <div class="ayah-trans">"And that there is not for man except that for which he strives."</div>
+  <div class="ayah-ref">— Qur'an 53:39 | Surah An-Najm</div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-val">ITI</div><div class="stat-label">Electronics Mechanic</div></div>
+  <div class="stat"><div class="stat-val">2nd yr</div><div class="stat-label">Diploma ETCE</div></div>
+  <div class="stat"><div class="stat-val">NGB</div><div class="stat-label">Firmware Dev (Live)</div></div>
+  <div class="stat"><div class="stat-val">7+</div><div class="stat-label">MCUs Owned</div></div>
+  <div class="stat"><div class="stat-val">ESP32</div><div class="stat-label">Primary Platform</div></div>
+  <div class="stat"><div class="stat-val">PCB</div><div class="stat-label">EasyEDA Designer</div></div>
+</div>
+
+<!-- TRACK -->
+<div class="track">
+
+<!-- ════════════════ PHASE 1 ════════════════ -->
+<div class="phase done">
+<div class="phase-card">
+  <div class="phase-header" onclick="toggle(this)">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 01</span>
+      <span class="phase-title">Foundation Built</span>
+      <span class="badge done">COMPLETE</span>
+      <span class="expand-hint">[ EXPAND ]</span>
+    </div>
+    <div class="skills">
+      <span class="skill-tag">ITI Electronics</span>
+      <span class="skill-tag">Basic C</span>
+      <span class="skill-tag">Arduino IDE</span>
+      <span class="skill-tag">ESP32</span>
+      <span class="skill-tag">MSP430 Bare-Metal</span>
+      <span class="skill-tag">UART / I2C / SPI</span>
+    </div>
+    <div class="phase-desc">ITI 2022–24. Real hardware from day one. GPIO to full P10 LED display firmware at NGB. Production code in fuel stations across India.</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-inner">
+      <div class="section-block">
+        <div class="section-title">// What you learned</div>
+        <ul class="topic-list">
+          <li>GPIO — input/output, pull-up/down, open-drain<span>Controlling relays, LEDs, buttons</span></li>
+          <li>UART — baud rate, start/stop bits, parity<span>RS485/MAX485 at NGB for serial comms</span></li>
+          <li>I2C — address, ACK/NACK, clock stretching<span>DS3231 RTC, SSD1306 OLED from scratch</span></li>
+          <li>SPI — MOSI/MISO/CLK/CS, modes 0–3<span>P10 HUB12 DMD panel driving</span></li>
+          <li>Interrupts — ISR, IRAM_ATTR, timer ISR<span>HW timer for DMD scan in production</span></li>
+          <li>Arduino HAL — how it wraps bare-metal<span>Know what digitalWrite actually does</span></li>
+        </ul>
+      </div>
+      <div class="section-block">
+        <div class="section-title">// Real projects done</div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-name">NGB RDU Firmware</div>
+            <div class="project-desc">Production ESP32 firmware. P10 HUB12 LED display for BPCL/HPCL/IOCL fuel stations. ESP-NOW sync, OTA, mDNS, web config.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">MSP430 Bare-Metal UART + I2C</div>
+            <div class="project-desc">No HAL. Register-level UCA0 UART at 115200, SSD1306 I2C driver from zero, MAX30102 peak detection.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Smart Masjid Clock</div>
+            <div class="project-desc">ESP32 + HUB75 RGB panels, FreeRTOS, DS3231, DHT22, auto brightness, Hijri date. Gift to local mosque.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ PHASE 2 ════════════════ -->
+<div class="phase active">
+<div class="phase-card">
+  <div class="phase-header" onclick="toggle(this)">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 02</span>
+      <span class="phase-title">C Mastery + Diploma</span>
+      <span class="badge active">YOU ARE HERE</span>
+      <span class="expand-hint">[ EXPAND ]</span>
+    </div>
+    <div class="skills">
+      <span class="skill-tag">Pointers</span>
+      <span class="skill-tag">Structs</span>
+      <span class="skill-tag">Dynamic Memory</span>
+      <span class="skill-tag">Bitwise Ops</span>
+      <span class="skill-tag">File I/O</span>
+      <span class="skill-tag">CLI Projects</span>
+    </div>
+    <div class="phase-desc">Deep C. This phase makes or breaks your embedded career. Every bug in firmware traces back to C you didn't understand.</div>
+    <div class="progress-bar"><div class="progress-fill" style="--prog:55%;"></div></div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-inner">
+      <div class="section-block">
+        <div class="section-title">// Topics — master all of these</div>
+        <ul class="topic-list">
+          <li>Pointers — address, dereference, pointer arithmetic<span>int *p; p++; *p = 5; — know exactly what happens</span></li>
+          <li>Pointers to pointers — **ptr, array of pointers<span>Used in argv, linked lists, 2D arrays</span></li>
+          <li>Structs — declaration, typedef, nested structs<span>Model real hardware: typedef struct { uint8_t addr; uint8_t data; } I2C_Msg_t;</span></li>
+          <li>Struct padding & alignment<span>Critical: sizeof() surprises in embedded. Use __attribute__((packed))</span></li>
+          <li>malloc / calloc / realloc / free<span>When to use on MCU: sparingly — prefer static allocation</span></li>
+          <li>Stack vs Heap — where variables live<span>Local vars = stack, malloc = heap, global = BSS/data segment</span></li>
+          <li>Bitwise — AND, OR, XOR, NOT, shifts<span>SET: reg |= (1&lt;&lt;n) CLR: reg &= ~(1&lt;&lt;n) TOGGLE: reg ^= (1&lt;&lt;n)</span></li>
+          <li>Bit fields in structs<span>struct { uint8_t flag:1; uint8_t mode:3; } — pack hardware register maps</span></li>
+          <li>Function pointers<span>void (*callback)(void); — used in RTOS, HAL, event systems</span></li>
+          <li>String manipulation — no stdlib, manual<span>Implement strlen, strcpy, strrev yourself</span></li>
+          <li>Arrays vs Pointers — not the same thing<span>arr decays to pointer, but sizeof differs</span></li>
+          <li>const, volatile, static keywords<span>volatile uint32_t *reg = 0x40020000; — hardware register access</span></li>
+        </ul>
+      </div>
+      <div class="section-block">
+        <div class="section-title">// Build these projects</div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-name">CLI Device Manager</div>
+            <div class="project-desc">Struct-based device registry. Add/remove/list devices. Dynamic memory. Function pointers for device ops. This = your C capstone.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Bitwise Register Simulator</div>
+            <div class="project-desc">Simulate a fake MCU register bank in C. Set/clear/toggle bits. Print binary. Prepares you for real register manipulation.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Static Ring Buffer</div>
+            <div class="project-desc">Circular buffer with head/tail pointers. Used in UART RX buffers in every real firmware. No dynamic memory.</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="section-title">// Resources</div>
+        <div class="resource-list">
+          <div class="resource-item">Book: <a href="#">"C Programming: A Modern Approach" — K.N. King</a> — best C book for serious learning</div>
+          <div class="resource-item">Book: <a href="#">"Expert C Programming: Deep Secrets" — Peter van der Linden</a> — pointers, memory, the dark corners</div>
+          <div class="resource-item">Practice: <a href="https://leetcode.com">LeetCode easy/medium in C</a> — forces pointer + logic thinking</div>
+          <div class="resource-item">Reference: <a href="https://cppreference.com">cppreference.com</a> — standard C library reference</div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="tip-block">⚡ RULE: If you can't write a linked list from scratch in C without looking it up — you are not ready for ESP-IDF or STM32 yet. Fix that first.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ PHASE 3 ════════════════ -->
+<div class="phase future">
+<div class="phase-card">
+  <div class="phase-header" onclick="toggle(this)">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 03</span>
+      <span class="phase-title">ESP-IDF — Drop Arduino</span>
+      <span class="badge future">NEXT</span>
+      <span class="expand-hint">[ EXPAND ]</span>
+    </div>
+    <div class="skills">
+      <span class="skill-tag">ESP-IDF</span>
+      <span class="skill-tag">FreeRTOS</span>
+      <span class="skill-tag">SPI/I2C native</span>
+      <span class="skill-tag">WiFi Stack</span>
+      <span class="skill-tag">NVS Flash</span>
+      <span class="skill-tag">OTA</span>
+      <span class="skill-tag">Partitions</span>
+    </div>
+    <div class="phase-desc">Arduino is training wheels. ESP-IDF is how Espressif engineers write firmware. This is industry-grade embedded on ESP32.</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-inner">
+      <div class="section-block">
+        <div class="section-title">// Topics to learn</div>
+        <ul class="topic-list">
+          <li>Project structure — CMakeLists.txt, components, menuconfig<span>idf.py build flash monitor — your new workflow</span></li>
+          <li>FreeRTOS tasks — xTaskCreate, vTaskDelay, priorities<span>Never use delay() again. Every feature = a task</span></li>
+          <li>FreeRTOS queues — xQueueCreate, xQueueSend, xQueueReceive<span>Safe data passing between ISR and task</span></li>
+          <li>FreeRTOS semaphores — mutex vs binary<span>Protect shared resources, prevent race conditions</span></li>
+          <li>SPI driver — spi_bus_initialize, spi_device_handle_t<span>You already did this for DMD32 port — expand it</span></li>
+          <li>I2C driver — i2c_master_init, i2c_master_cmd_begin<span>Drive DS3231 RTC in pure ESP-IDF</span></li>
+          <li>UART driver — uart_driver_install, uart_read_bytes<span>Replace Arduino Serial with real ring-buffered UART</span></li>
+          <li>NVS (Non-Volatile Storage) — read/write config to flash<span>Store WiFi creds, device settings — survives reboot</span></li>
+          <li>Partition table — custom partitions.csv<span>Split flash: app / OTA / NVS / SPIFFS</span></li>
+          <li>OTA updates — esp_https_ota<span>You did this in Arduino. Now do it in ESP-IDF properly</span></li>
+          <li>GPIO ISR + gptimer API<span>You already ported DMD32 with gptimer — good base</span></li>
+          <li>WiFi — station + AP + event loop<span>esp_wifi_init, esp_event_loop_create_default</span></li>
+          <li>LEDC PWM — ledc_channel_config<span>Brightness control. You already used this in DMD port</span></li>
+          <li>ESP-NOW in IDF<span>You used it in Arduino. Rebuild in IDF — cleaner, faster</span></li>
+        </ul>
+      </div>
+      <div class="section-block">
+        <div class="section-title">// Projects</div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-name">RDU Firmware in ESP-IDF</div>
+            <div class="project-desc">Port your NGB_UNIVERSAL firmware to pure ESP-IDF. FreeRTOS tasks for display, WiFi, ESP-NOW, OTA. This is your ultimate ESP32 project.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Multi-task Sensor Logger</div>
+            <div class="project-desc">3 FreeRTOS tasks: sensor read → queue → UART log. Use semaphore for shared I2C bus. Teaches real concurrent firmware design.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Custom OTA + NVS Config System</div>
+            <div class="project-desc">Device reads config from NVS on boot. OTA pulls from HTTPS server. Partition table with factory + OTA slots. Production-grade.</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="section-title">// Resources</div>
+        <div class="resource-list">
+          <div class="resource-item">Docs: <a href="https://docs.espressif.com/projects/esp-idf/en/latest/">docs.espressif.com</a> — your primary reference, read the API guides</div>
+          <div class="resource-item">Examples: <a href="https://github.com/espressif/esp-idf/tree/master/examples">ESP-IDF /examples on GitHub</a> — start with get-started, then peripherals</div>
+          <div class="resource-item">YouTube: ESP-IDF FreeRTOS series by Digi Key / ControllersTech</div>
+          <div class="resource-item">Book: "Mastering the FreeRTOS Real Time Kernel" — free PDF from freertos.org</div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="tip-block">⚡ You already ported DMD32 to ESP-IDF with gptimer + LEDC. That was Phase 3 work. You are closer than you think.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ PHASE 4 ════════════════ -->
+<div class="phase future">
+<div class="phase-card">
+  <div class="phase-header" onclick="toggle(this)">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 04</span>
+      <span class="phase-title">STM32 — Industry Standard</span>
+      <span class="badge future">UPCOMING</span>
+      <span class="expand-hint">[ EXPAND ]</span>
+    </div>
+    <div class="skills">
+      <span class="skill-tag">STM32 HAL</span>
+      <span class="skill-tag">CubeMX</span>
+      <span class="skill-tag">LL Drivers</span>
+      <span class="skill-tag">CMSIS</span>
+      <span class="skill-tag">DMA</span>
+      <span class="skill-tag">Timers/PWM</span>
+      <span class="skill-tag">CAN</span>
+      <span class="skill-tag">RS485</span>
+    </div>
+    <div class="phase-desc">Nucleo-F446RE sits in your hardware collection. STM32 = the MCU in industrial products, medical devices, automotive. This unlocks real jobs.</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-inner">
+      <div class="section-block">
+        <div class="section-title">// Learn in this order</div>
+        <ul class="topic-list">
+          <li>CubeMX — clock config, peripheral init code gen<span>F446RE runs at 180MHz. Configure PLL correctly first</span></li>
+          <li>GPIO HAL — HAL_GPIO_WritePin, ReadPin, EXTI<span>Blink LED on PA5 (Nucleo onboard LED)</span></li>
+          <li>UART HAL — HAL_UART_Transmit, Receive, IT mode<span>printf over UART2 (ST-LINK virtual COM)</span></li>
+          <li>SPI HAL — HAL_SPI_Transmit, full duplex<span>Drive a display or SPI flash over SPI</span></li>
+          <li>I2C HAL — HAL_I2C_Master_Transmit<span>Connect DS3231 to F446RE via I2C1</span></li>
+          <li>Timers — TIM base, PWM output, input capture<span>F446RE has TIM1–14. PWM on TIM1/TIM8 for motor control</span></li>
+          <li>DMA — link to UART/SPI/ADC<span>DMA sends data without CPU. Critical for high-speed comms</span></li>
+          <li>ADC — HAL_ADC_Start, DMA mode<span>Read analog sensor, potentiometer, current sense</span></li>
+          <li>NVIC — interrupt priority, preemption<span>Configure UART IRQ priority vs timer IRQ</span></li>
+          <li>Low-Level (LL) drivers — bypass HAL<span>LL_GPIO_SetOutputPin — faster, less overhead than HAL</span></li>
+          <li>Linker script — memory sections<span>.text .data .bss — understand where your code lives in flash</span></li>
+          <li>FreeRTOS on STM32 via CubeMX<span>Add FreeRTOS middleware, create tasks, same concepts as ESP-IDF</span></li>
+        </ul>
+      </div>
+      <div class="section-block">
+        <div class="section-title">// Projects</div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-name">RS485 Modbus RTU Master</div>
+            <div class="project-desc">STM32F446 reads industrial sensors over RS485/Modbus. Real-world industrial protocol. Direct use case for NGB-style products.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">PWM Motor Controller</div>
+            <div class="project-desc">Control DC motor speed via TIM1 PWM + ADC feedback. FreeRTOS PID task. Used in robotics, automation.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">DMA UART Logger</div>
+            <div class="project-desc">High-speed UART TX via DMA. CPU-free data streaming. Benchmark with logic analyzer. Teaches DMA properly.</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="section-title">// Resources</div>
+        <div class="resource-list">
+          <div class="resource-item">Docs: STM32F446RE Reference Manual (RM0390) — from st.com, 1000+ pages, your bible</div>
+          <div class="resource-item">YouTube: <a href="#">"STM32 for Beginners" by Embedded with Khem</a> — HAL based, clear</div>
+          <div class="resource-item">YouTube: <a href="#">Philip Salmony / Control Engineering</a> — advanced STM32, FreeRTOS, filters</div>
+          <div class="resource-item">Course: <a href="https://www.udemy.com">FastBit Embedded Brain Academy — STM32Fx Microcontroller</a> on Udemy</div>
+          <div class="resource-item">Tool: STM32CubeIDE (free) — includes CubeMX + GCC + debugger</div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="tip-block">⚡ You already designed an ESP32 PCB in EasyEDA. Now design an STM32-based PCB with RS485 protection — that's a portfolio-level project.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ PHASE 5 ════════════════ -->
+<div class="phase future">
+<div class="phase-card">
+  <div class="phase-header" onclick="toggle(this)">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 05</span>
+      <span class="phase-title">RTOS + System Design</span>
+      <span class="badge future">UPCOMING</span>
+      <span class="expand-hint">[ EXPAND ]</span>
+    </div>
+    <div class="skills">
+      <span class="skill-tag">FreeRTOS Deep</span>
+      <span class="skill-tag">Bootloaders</span>
+      <span class="skill-tag">Memory Maps</span>
+      <span class="skill-tag">Watchdog</span>
+      <span class="skill-tag">Power Mgmt</span>
+      <span class="skill-tag">Fault Handlers</span>
+      <span class="skill-tag">Unit Testing</span>
+    </div>
+    <div class="phase-desc">This separates junior embedded from senior embedded. You don't just write firmware — you design systems that don't fail.</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-inner">
+      <div class="section-block">
+        <div class="section-title">// Topics</div>
+        <ul class="topic-list">
+          <li>FreeRTOS internals — scheduler, tick, context switch<span>Understand what happens when vTaskDelay(100) is called</span></li>
+          <li>Task stack size — calculate correctly<span>Stack overflow = hard fault. Use uxTaskGetStackHighWaterMark()</span></li>
+          <li>Event groups — synchronize multiple tasks<span>Wait for WiFi + Sensor + Display ready before start</span></li>
+          <li>Software timers — xTimerCreate<span>Periodic callbacks without a full task</span></li>
+          <li>Custom bootloader — jumps to app in flash<span>Write bootloader at 0x08000000, app at 0x08008000</span></li>
+          <li>Linker script mastery — custom memory sections<span>Place critical code in CCMRAM for speed</span></li>
+          <li>HardFault handler — decode fault register<span>SCB->CFSR, SCB->HFSR — find what crashed and why</span></li>
+          <li>Watchdog — IWDG + WWDG<span>Kick the dog in main task. Catch deadlocks automatically</span></li>
+          <li>Sleep modes — Light sleep / Deep sleep / Stop mode<span>ESP32 deep sleep, STM32 Stop mode — battery life critical</span></li>
+          <li>Unit testing embedded C — Unity framework<span>Test functions on host PC before flashing hardware</span></li>
+          <li>Static analysis — PC-lint, cppcheck<span>Catch bugs before compile. Industry standard practice</span></li>
+        </ul>
+      </div>
+      <div class="section-block">
+        <div class="section-title">// Projects</div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-name">Custom STM32 Bootloader</div>
+            <div class="project-desc">Write bootloader in C from scratch. Checks button on boot, either stays in DFU or jumps to main app via function pointer to reset vector.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">FreeRTOS State Machine</div>
+            <div class="project-desc">Device state machine: BOOT → INIT → RUN → ERROR → RESET. Each state = task behavior. Watchdog integration.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Power-Optimized ESP32 Node</div>
+            <div class="project-desc">Wake from deep sleep, read sensor, publish via WiFi/ESP-NOW, sleep. Achieve &lt;50µA average current. Real battery device.</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="tip-block">⚡ Your NGB firmware has had timer conflicts and EEPROM corruption bugs. Those are Phase 5 problems. This phase teaches you to prevent them by design.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ PHASE 6 ════════════════ -->
+<div class="phase future">
+<div class="phase-card">
+  <div class="phase-header" onclick="toggle(this)">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 06</span>
+      <span class="phase-title">Edge AI / TFLite Micro</span>
+      <span class="badge future">TARGET</span>
+      <span class="expand-hint">[ EXPAND ]</span>
+    </div>
+    <div class="skills">
+      <span class="skill-tag">TFLite Micro</span>
+      <span class="skill-tag">Edge Impulse</span>
+      <span class="skill-tag">ESP32-S3</span>
+      <span class="skill-tag">Quantization</span>
+      <span class="skill-tag">CNN / LSTM</span>
+      <span class="skill-tag">Sensor Fusion</span>
+      <span class="skill-tag">Python / NumPy</span>
+    </div>
+    <div class="phase-desc">Run ML models on microcontrollers. No cloud. No internet. Intelligence at the edge. This is AIoT. You started this with CSI-based human detection.</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-inner">
+      <div class="section-block">
+        <div class="section-title">// Topics</div>
+        <ul class="topic-list">
+          <li>Neural network basics — you started this in Python/NumPy<span>Forward pass, backprop, XOR problem — finish this first</span></li>
+          <li>Quantization — float32 → int8<span>Models must be quantized to fit on MCU. Accuracy vs size tradeoff</span></li>
+          <li>TFLite Micro workflow — train → convert → deploy<span>Python: train model → tflite_convert → C array → flash</span></li>
+          <li>Edge Impulse — no-code ML pipeline<span>Upload data → train → export Arduino/ESP-IDF library</span></li>
+          <li>ESP32-S3 — PSRAM, vector instructions<span>S3 has AI acceleration. 8MB PSRAM for larger models</span></li>
+          <li>Keyword spotting — "Hey Device" on ESP32<span>Use Edge Impulse + microphone. Real product use case</span></li>
+          <li>Anomaly detection on sensors<span>Train on normal vibration/temperature, detect faults. Industrial IoT</span></li>
+          <li>Image classification — ESP32-S3 + OV2640 camera<span>Classify objects in real-time on MCU. No cloud needed</span></li>
+          <li>Model optimization — pruning, knowledge distillation<span>Make model smaller without losing accuracy</span></li>
+        </ul>
+      </div>
+      <div class="section-block">
+        <div class="section-title">// Projects</div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-name">Fuel Station Fault Detector</div>
+            <div class="project-desc">Train anomaly model on RDU display behavior patterns. Deploy on ESP32-S3. Detects display failures before human notices. Direct NGB use case.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Keyword Spotter</div>
+            <div class="project-desc">ESP32-S3 + MEMS mic. Detect custom wake word using TFLite Micro. Edge Impulse training pipeline. No internet required.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">WiFi CSI Motion Detector v2</div>
+            <div class="project-desc">You started this. Upgrade with ML classifier instead of threshold. Train on actual CSI data. True AIoT project.</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="section-title">// Resources</div>
+        <div class="resource-list">
+          <div class="resource-item">Platform: <a href="https://edgeimpulse.com">edgeimpulse.com</a> — best starting point for Edge AI, free tier</div>
+          <div class="resource-item">Docs: <a href="https://www.tensorflow.org/lite/microcontrollers">TFLite Micro docs</a> — official Espressif + TF examples</div>
+          <div class="resource-item">Book: "TinyML" by Pete Warden & Daniel Situnayake — O'Reilly, the definitive book</div>
+          <div class="resource-item">Course: fast.ai Practical Deep Learning — free, practical, Python based</div>
+          <div class="resource-item">Your env: /home/aslam/appdev/python-projects/ai_env/ — already set up</div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="tip-block info">💡 Your Python/NumPy neural network work from your AI learning is Phase 6 prep. Don't skip that. Understanding backprop matters even if you use Edge Impulse GUI.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════ PHASE 7 ════════════════ -->
+<div class="phase future">
+<div class="phase-card">
+  <div class="phase-header" onclick="toggle(this)">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 07</span>
+      <span class="phase-title">Portfolio + Job Hunt</span>
+      <span class="badge future">DESTINATION</span>
+      <span class="expand-hint">[ EXPAND ]</span>
+    </div>
+    <div class="skills">
+      <span class="skill-tag">GitHub Portfolio</span>
+      <span class="skill-tag">PCB Design</span>
+      <span class="skill-tag">LinkedIn</span>
+      <span class="skill-tag">Bangalore/Remote</span>
+      <span class="skill-tag">Core Embedded Role</span>
+    </div>
+    <div class="phase-desc">Employers don't hire degrees. They hire proof. 4 strong projects on GitHub + a PCB you designed + production code you shipped = you get interviews.</div>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+  </div>
+  <div class="phase-body">
+    <div class="phase-inner">
+      <div class="section-block">
+        <div class="section-title">// What your portfolio needs</div>
+        <ul class="topic-list">
+          <li>GitHub: 4–5 repos, clean READMEs with photos/videos<span>Video of hardware working > 1000 lines of code</span></li>
+          <li>One ESP-IDF project (production grade)<span>Show you can write real firmware, not Arduino sketches</span></li>
+          <li>One STM32 project with DMA or custom driver<span>Proves you can handle industrial MCUs</span></li>
+          <li>One Edge AI / TFLite Micro project<span>Differentiates you from 90% of embedded applicants</span></li>
+          <li>One PCB designed in EasyEDA/KiCad with gerber files<span>Shows full product thinking, not just software</span></li>
+          <li>LinkedIn — active, posts about projects<span>Indian embedded recruiters DO use LinkedIn. Use it.</span></li>
+          <li>Resume — 1 page, projects first, no fluff<span>NGB production firmware = real experience. Lead with it.</span></li>
+        </ul>
+      </div>
+      <div class="section-block">
+        <div class="section-title">// Target companies</div>
+        <div class="project-list">
+          <div class="project-item">
+            <div class="project-name">Tier 1 — Bangalore/Hyderabad</div>
+            <div class="project-desc">Texas Instruments, STMicroelectronics, NXP, Qualcomm (IoT), Bosch (automotive), Honeywell, Siemens. Require strong C + STM32/ARM knowledge.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Tier 2 — Product Startups</div>
+            <div class="project-desc">IoT startups, industrial automation cos, EV companies, medical device firms. Want full-stack embedded: firmware + PCB + cloud integration.</div>
+          </div>
+          <div class="project-item">
+            <div class="project-name">Remote / Freelance</div>
+            <div class="project-desc">Upwork embedded projects, international remote roles. ESP32 + STM32 + Edge AI = highly marketable globally. ₹ equivalent of $30–80/hr possible.</div>
+          </div>
+        </div>
+      </div>
+      <div class="section-block full-col">
+        <div class="section-title">// Interview prep topics</div>
+        <ul class="topic-list">
+          <li>C: pointers, volatile, interrupt-safe code, memory layout</li>
+          <li>RTOS: task priorities, deadlock, priority inversion</li>
+          <li>Protocols: I2C ACK/NACK, SPI modes, UART framing, CAN arbitration</li>
+          <li>Debugging: logic analyzer, oscilloscope, JTAG/SWD, GDB</li>
+          <li>Low-level: memory-mapped registers, linker script, startup code</li>
+          <li>Power: sleep modes, current measurement, battery life calculation</li>
+        </ul>
+      </div>
+      <div class="section-block full-col">
+        <div class="tip-block info">💡 You already have production firmware running in real Indian fuel stations. That is your biggest interview advantage. Most freshers have zero production experience. You have it.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- end track -->
+
+<!-- SALARY CHART -->
+<div class="salary-section">
+  <div class="salary-title">// SALARY TRAJECTORY — CORE EMBEDDED (INDIA)</div>
+  <div class="salary-chart">
+    <div class="salary-row">
+      <div class="salary-label">Now (NGB)</div>
+      <div class="salary-bar-wrap"><div class="salary-bar" style="--bw:15%; background:rgba(58,80,96,0.5); color:var(--dim);">Current</div></div>
+      <div class="salary-val" style="color:var(--dim)">₹2–4L</div>
+    </div>
+    <div class="salary-row">
+      <div class="salary-label">Fresher Job</div>
+      <div class="salary-bar-wrap"><div class="salary-bar" style="--bw:35%; background:rgba(0,255,224,0.2); color:var(--done);">After Phase 4</div></div>
+      <div class="salary-val" style="color:var(--done)">₹5–9L</div>
+    </div>
+    <div class="salary-row">
+      <div class="salary-label">2–3 Years</div>
+      <div class="salary-bar-wrap"><div class="salary-bar" style="--bw:55%; background:rgba(0,255,224,0.3); color:var(--done);">With RTOS + STM32</div></div>
+      <div class="salary-val" style="color:var(--done)">₹12–18L</div>
+    </div>
+    <div class="salary-row">
+      <div class="salary-label">+ Edge AI</div>
+      <div class="salary-bar-wrap"><div class="salary-bar" style="--bw:78%; background:rgba(123,47,255,0.4); color:#b090ff;">Rare skill set</div></div>
+      <div class="salary-val" style="color:#b090ff">₹20–30L</div>
+    </div>
+    <div class="salary-row">
+      <div class="salary-label">Remote/Global</div>
+      <div class="salary-bar-wrap"><div class="salary-bar" style="--bw:100%; background:linear-gradient(90deg,rgba(123,47,255,0.5),rgba(0,255,224,0.4)); color:#fff;">Full stack embedded</div></div>
+      <div class="salary-val" style="color:var(--accent)">₹40L+</div>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL TARGET -->
+<div class="target">
+  <div class="target-label">// FINAL DESTINATION</div>
+  <div class="target-title">CORE EMBEDDED <span>ENGINEER</span><br>+ AIoT / EDGE AI SPECIALIST</div>
+  <div class="target-sub">naihati → firmware → esp-idf → stm32 → tflite → bangalore → impact</div>
+  <div class="target-quote">"وَأَن لَّيْسَ لِلْإِنسَانِ إِلَّا مَا سَعَىٰ" — Work. Allah handles the rest.</div>
+</div>
+
+</div><!-- container -->
+
+<script>
+function toggle(header) {
+  const body = header.nextElementSibling;
+  const hint = header.querySelector('.expand-hint');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open');
+  hint.textContent = isOpen ? '[ EXPAND ]' : '[ COLLAPSE ]';
+}
+</script>
+</body>
+</html>
